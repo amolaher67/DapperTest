@@ -7,8 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using Dapper;
-
-
+using ConsoleApp1.Entities;
+using ConsoleApp1.UnitOfWorks;
 
 namespace ConsoleApp1
 {
@@ -16,7 +16,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            DapperHelper objDapperHelper = new DapperHelper();
+            
 
             #region Insert Dynamic Object To Database  
 
@@ -32,76 +32,22 @@ namespace ConsoleApp1
             c.Company = Console.ReadLine();
             Console.WriteLine("Enter Title : ");
             c.Title = Console.ReadLine();
-            Console.WriteLine("New Contact Created With ID {0} ", objDapperHelper.CreateContact(c));
 
-            #endregion
+            using (var uow = new UnitOfWork("LosGatos"))
+            {
+                uow.ContactRepository.Add(c);
+                uow.Commit();
+            }
 
-            #region GetContacts
-            var contacts = objDapperHelper.GetAllContact(1);
-            #endregion
+            //Same way we can write SELECT UPDATE AND DELETE 
 
 
-            //We can write same SP for Delete and update 
-            
-        }
+               
+
+            }
     }
 
 
 
-    public class DapperHelper
-    {
-        static IDbConnection db;
-        static DapperHelper()
-        {
-            db = new SqlConnection(ConfigurationManager.ConnectionStrings["SqlServerConnString"].ConnectionString);
-        }
-
-        public List<Contacts> GetAllContact(int id)
-        {
-            List<Contacts> lstContact = null;
-
-            try
-            {
-
-                using (var result = db.QueryMultiple("usp_GetAllContacts", new { ID = id }, commandType: CommandType.StoredProcedure))
-                {
-                    lstContact = result.Read<Contacts>().ToList();
-
-                }
-
-                return lstContact;
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-
-        public int CreateContact(Contacts con)
-        {
-            try
-            {
-
-                var parameter = new DynamicParameters();
-                parameter.Add("@Id", con.Id, dbType: DbType.Int32, direction: ParameterDirection.InputOutput);
-                parameter.Add("@FirstName", con.FirstName);
-                parameter.Add("@LastName", con.LastName);
-                parameter.Add("@Company", con.Company);
-                parameter.Add("@Title", con.Title);
-                parameter.Add("@Email", con.Email);
-
-                db.Execute("usp_InsetContact", parameter, commandType: CommandType.StoredProcedure);
-
-                //To get newly created ID back  
-                con.Id = parameter.Get<int>("@Id");
-
-                return con.Id;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
-    }
+  
 }
