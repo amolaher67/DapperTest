@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
-using Dapper;
 using ConsoleApp1.Entities;
 using ConsoleApp1.UnitOfWorks;
 
@@ -16,7 +15,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            
+
 
             #region Insert Dynamic Object To Database  
 
@@ -33,7 +32,7 @@ namespace ConsoleApp1
             Console.WriteLine("Enter Title : ");
             c.Title = Console.ReadLine();
 
-            using (var uow = new UnitOfWork("LosGatos"))
+            using (var uow = new UnitOfWork("ConnectionString"))
             {
                 uow.ContactRepository.Add(c);
                 uow.Commit();
@@ -41,13 +40,8 @@ namespace ConsoleApp1
 
             //Same way we can write SELECT UPDATE AND DELETE 
 
+            #endregion
 
-               
-
-            }
+        }
     }
-
-
-
-  
 }
